@@ -8,4 +8,5 @@ async def lifespan(app: FastAPI):
     # Base.metadata.create_all(engine)
     yield
 
+
 app = FastAPI(lifespan=lifespan)
