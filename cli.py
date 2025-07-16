@@ -32,17 +32,17 @@ def login():
         click.secho("ERROR: Login Failed", fg="red", err=True)
         sys.exit(1)
 
-    click.echo("Waiting for user to login .....")
+    click.echo("Waiting for user to login.....")
 
     # Wait for 60 seconds polling every half second
     for _ in range(60 * 2):
         if value_holder["code"]:
             access_code = value_holder["code"]
-            click.echo("Access code received")
+            click.echo("Access Code received\n")
             break
 
         time.sleep(0.5)
-    click.echo("Getting Access Token")
+    click.echo("Getting Access Token....")
     token = PhotosServiceAsync.get_token(creds_file_location, access_code)
     click.echo(token)
     click.echo("Successfully logged in")
