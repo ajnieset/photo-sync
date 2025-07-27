@@ -94,7 +94,7 @@ def upload(filepath: str, filename: str):
     with open(filepath, "rb") as photo:
         upload_code = service.upload_photos(photo.read())
 
-    response = service.create_all(filename, upload_code)
+    response = service.create_all(filename, upload_code.decode())
     click.echo(response)
 
     service.close()
