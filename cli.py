@@ -2,11 +2,15 @@ import pathlib
 import sys
 import threading
 import time
+import json
+import datetime
 
 import click
 
-from app.services.google_photos import PhotosServiceAsync
+from app.services.google_photos import PhotosService
 from server import start_server, value_holder
+
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 @click.group()
@@ -27,7 +31,7 @@ def login():
     click.echo("Logging in with Google")
 
     try:
-        PhotosServiceAsync.login(creds_file_location)
+        PhotosService.login(creds_file_location)
     except Exception:
         click.secho("ERROR: Login Failed", fg="red", err=True)
         sys.exit(1)
@@ -43,22 +47,57 @@ def login():
 
         time.sleep(0.5)
     click.echo("Getting Access Token....\n")
-    token = PhotosServiceAsync.get_token(creds_file_location, access_code)
-    click.echo(token)
+
+    token = PhotosService.get_token(creds_file_location, access_code)
+
     click.echo("Successfully logged in")
+
+    token = json.loads(token)
+    token["created_at"] = datetime.datetime.now().strftime(DATETIME_FORMAT)
+
+    with open(".access_token.json", "w+") as f:
+        f.write(json.dumps(token))
 
 
 @cli.command()
-@click.argument("access_code", type=str)
-def upload(access_code: str):
+@click.argument("filepath", type=str)
+@click.argument("filename", type=str)
+def upload(filepath: str, filename: str):
     """Upload file by FILENAME"""
-    creds_file_location = pathlib.Path("cli-creds.json")
+    start_time = datetime.datetime.now()
 
-    click.echo(access_code)
+    with open(".access_token.json", "r") as f:
+        access_token = json.loads(f.read())
 
-    token = PhotosServiceAsync.get_token(creds_file_location, access_code)
+    created_time = datetime.datetime.strptime(
+        access_token["created_at"], DATETIME_FORMAT
+    )
+    print(created_time)
+    expire_time = created_time + datetime.timedelta(seconds=access_token["expires_in"])
+    if expire_time < start_time:
+        click.echo("Access Code expired checking refresh token")
+        return  # TODO: remove after refresh token impl
 
-    click.echo(token)
+    refresh_expire_time = created_time + datetime.timedelta(
+        seconds=access_token["refresh_token_expires_in"]
+    )
+    if refresh_expire_time < start_time:
+        click.echo("Refresh token expired, please login again")
+        return
+
+    # TODO: refresh access token with refresh token
+
+    auth_token = f"{access_token['token_type']} {access_token['access_token']}"
+
+    service = PhotosService(token=auth_token)
+
+    with open(filepath, "rb") as photo:
+        upload_code = service.upload_photos(photo.read())
+
+    response = service.create_all(filename, upload_code)
+    click.echo(response)
+
+    service.close()
 
 
 @cli.command()

@@ -14,3 +14,8 @@ wheels/
 
 # Credentials files
 *creds*.json
+.access_token.json
+
+# Images
+*.jpg
+*.jpeg

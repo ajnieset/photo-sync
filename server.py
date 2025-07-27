@@ -3,6 +3,7 @@ from urllib.parse import urlparse, parse_qs
 
 value_holder = {"code": None}
 
+
 class CodeHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urlparse(self.path)
@@ -28,6 +29,6 @@ class CodeHandler(BaseHTTPRequestHandler):
 
 
 def start_server():
-    server = HTTPServer(('localhost', 8081), CodeHandler)
+    server = HTTPServer(("localhost", 8081), CodeHandler)
     print("Waiting for OAuth redirect on http://localhost:8081/callback")
     server.handle_request()  # Handle one request then exit
