@@ -72,7 +72,6 @@ def upload(filepath: str, filename: str):
     created_time = datetime.datetime.strptime(
         access_token["created_at"], DATETIME_FORMAT
     )
-    print(created_time)
     expire_time = created_time + datetime.timedelta(seconds=access_token["expires_in"])
     if expire_time < start_time:
         click.echo("Access Code expired checking refresh token")
