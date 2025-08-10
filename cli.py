@@ -1,9 +1,9 @@
+import datetime
+import json
 import pathlib
 import sys
 import threading
 import time
-import json
-import datetime
 
 import click
 
